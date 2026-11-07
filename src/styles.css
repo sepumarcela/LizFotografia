@@ -1261,3 +1261,26 @@ button {
     max-height: 520px;
   }
 }
+
+/* AJUSTE CONTROLADO: fotografías de Categorías y Blog */
+
+/* Categorías: mostrar la fotografía completa */
+.categories-grid .category-tile {
+  background-size: contain !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #e5e5e5;
+}
+
+/* Blog: controlar proporción y evitar recortes */
+.blog-image {
+  aspect-ratio: 3 / 2;
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  background-size: contain !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #e5e5e5;
+  overflow: hidden;
+}

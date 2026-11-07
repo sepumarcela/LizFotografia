@@ -15,7 +15,11 @@ import {
   LoaderCircle,
   CheckCircle2,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  Trash2,
+  ImagePlus,
+  GripVertical
 } from "lucide-react";
 
 import { login, logout, observeAuth } from "../firebase/auth";
@@ -24,7 +28,11 @@ import {
   doc,
   getDoc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  getDocs,
+  orderBy,
+  query
 } from "firebase/firestore";
 
 import PhotoManager from "./PhotoManager.jsx";
@@ -111,10 +119,10 @@ const initialContent = {
 
   blog: {
     title: "Blog",
-    article1Title: "La magia del analógico",
-    article1Description: "Un acercamiento a la fotografía análoga, sus procesos, texturas y la experiencia de fotografiar con tiempo y propósito.",
-    article2Title: "Fotografía gastronómica",
-    article2Description: "Claves para crear imágenes gastronómicas apetitosas, auténticas y con identidad."
+    articles: [
+      { id: "articulo-analogico", slug: "la-magia-del-analogico", title: "La magia del analógico", excerpt: "Un acercamiento a la fotografía análoga, sus procesos, texturas y la experiencia de fotografiar con tiempo y propósito.", body: "", coverUrl: "", status: "published", publishedAt: "" },
+      { id: "articulo-gastronomia", slug: "fotografia-gastronomica", title: "Fotografía gastronómica", excerpt: "Claves para crear imágenes gastronómicas apetitosas, auténticas y con identidad.", body: "", coverUrl: "", status: "published", publishedAt: "" }
+    ]
   },
 
   contact: {
@@ -166,6 +174,76 @@ function getFriendlyError(error) {
   }
 
   return "No se pudo completar la operación. Revisa la consola para conocer el detalle.";
+}
+
+function makeSlug(value) {
+  return (value || "articulo-nuevo")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "articulo-nuevo";
+}
+
+function BlogEditor({ content, updateField, onSave, saving, loading, notice, onReset }) {
+  const [blogPhotos, setBlogPhotos] = useState([]);
+  const articles = Array.isArray(content.articles) ? content.articles : [];
+
+  useEffect(() => {
+    let active = true;
+    async function loadPhotos() {
+      try {
+        const snap = await getDocs(query(collection(db, "siteImages"), orderBy("createdAt", "desc")));
+        if (active) setBlogPhotos(snap.docs.map((item) => ({ id: item.id, ...item.data() })).filter((photo) => photo.category === "blog"));
+      } catch (error) {
+        console.error("No se pudieron cargar las portadas del Blog:", error);
+      }
+    }
+    loadPhotos();
+    return () => { active = false; };
+  }, []);
+
+  function updateArticle(index, field, value) {
+    const next = articles.map((article, i) => i === index ? { ...article, [field]: value, ...(field === "title" ? { slug: makeSlug(value) } : {}) } : article);
+    updateField("articles", next);
+  }
+
+  function addArticle() {
+    updateField("articles", [...articles, {
+      id: `article-${Date.now()}`, slug: `articulo-${articles.length + 1}`,
+      title: "Nuevo artículo", excerpt: "", body: "", coverUrl: "",
+      status: "draft", publishedAt: new Date().toISOString().slice(0, 10)
+    }]);
+  }
+
+  function removeArticle(index) {
+    if (!window.confirm("¿Eliminar este artículo? Esta acción se aplicará al guardar los cambios.")) return;
+    updateField("articles", articles.filter((_, i) => i !== index));
+  }
+
+  return (
+    <form className="admin-editor-card blog-admin-editor" onSubmit={onSave}>
+      <div className="admin-card-heading">
+        <div><h3>Administrar publicaciones</h3><p>Crea artículos completos y publícalos en el sitio.</p></div>
+        <span className="admin-section-tag">Blog</span>
+      </div>
+      <label className="admin-field blog-main-title"><span>Título principal</span><input value={content.title || "Blog"} onChange={(e) => updateField("title", e.target.value)} /></label>
+      <div className="blog-admin-toolbar"><div><strong>{articles.length} publicaciones</strong><p>Los borradores no aparecen en el sitio público.</p></div><button type="button" className="admin-add-article" onClick={addArticle}><Plus size={17}/> Agregar artículo</button></div>
+      {loading ? <div className="admin-loading-inline">Cargando contenido...</div> : articles.map((article, index) => (
+        <section className="blog-admin-article" key={article.id || index}>
+          <header><div><span className="blog-admin-number">{String(index + 1).padStart(2, "0")}</span><h4>{article.title || "Artículo sin título"}</h4></div><button type="button" className="blog-remove-article" onClick={() => removeArticle(index)} aria-label="Eliminar artículo"><Trash2 size={17}/> Eliminar</button></header>
+          <div className="blog-admin-fields">
+            <label className="admin-field"><span>Título del artículo</span><input value={article.title || ""} onChange={(e) => updateArticle(index, "title", e.target.value)} required /></label>
+            <label className="admin-field"><span>Fecha de publicación</span><input type="date" value={article.publishedAt || ""} onChange={(e) => updateArticle(index, "publishedAt", e.target.value)} /></label>
+            <label className="admin-field blog-wide"><span>Resumen / introducción</span><textarea rows="3" value={article.excerpt || ""} onChange={(e) => updateArticle(index, "excerpt", e.target.value)} placeholder="Un texto breve para presentar el artículo..." /></label>
+            <label className="admin-field blog-wide"><span>Contenido completo</span><textarea className="blog-body-input" rows="12" value={article.body || ""} onChange={(e) => updateArticle(index, "body", e.target.value)} placeholder="Escribe aquí el artículo completo. Separa los párrafos con una línea en blanco." /></label>
+            <label className="admin-field"><span>Fotografía de portada</span><select value={article.coverUrl || ""} onChange={(e) => updateArticle(index, "coverUrl", e.target.value)}><option value="">Seleccionar fotografía del Blog</option>{blogPhotos.map((photo) => <option key={photo.id} value={photo.url}>{photo.name || photo.description || `Fotografía ${photo.id.slice(0, 6)}`}</option>)}</select></label>
+            <label className="admin-field"><span>Estado</span><select value={article.status || "draft"} onChange={(e) => updateArticle(index, "status", e.target.value)}><option value="draft">Borrador</option><option value="published">Publicado</option></select></label>
+          </div>
+          {article.coverUrl && <div className="blog-cover-preview"><img src={article.coverUrl} alt="Vista previa de portada"/><span>Vista previa de portada</span></div>}
+        </section>
+      ))}
+      {notice && <div className={`admin-notice ${notice.type}`}>{notice.text}</div>}
+      <div className="admin-editor-actions"><button className="admin-secondary-button" type="button" onClick={onReset}><ArrowLeft size={16}/> Restaurar valores iniciales</button><button className="admin-save-button" type="submit" disabled={saving || loading}><Save size={17}/>{saving ? "Guardando..." : "Guardar cambios"}</button></div>
+    </form>
+  );
 }
 
 export default function AdminDashboard() {
@@ -220,16 +298,36 @@ export default function AdminDashboard() {
         );
 
         const defaults = initialContent[activeSection];
-        const saved = snapshot.exists()
-          ? snapshot.data()
-          : {};
+        const saved = snapshot.exists() ? snapshot.data() : {};
+        let nextContent = { ...defaults, ...saved };
 
-        if (!cancelled) {
-          setContent({
-            ...defaults,
-            ...saved
-          });
+        // Migra los dos artículos del formato anterior sin borrar sus textos.
+        if (activeSection === "blog" && !Array.isArray(saved.articles)) {
+          nextContent.articles = [
+            {
+              id: "articulo-analogico",
+              slug: "la-magia-del-analogico",
+              title: saved.article1Title || defaults.articles[0].title,
+              excerpt: saved.article1Description || defaults.articles[0].excerpt,
+              body: "",
+              coverUrl: "",
+              status: "published",
+              publishedAt: ""
+            },
+            {
+              id: "articulo-gastronomia",
+              slug: "fotografia-gastronomica",
+              title: saved.article2Title || defaults.articles[1].title,
+              excerpt: saved.article2Description || defaults.articles[1].excerpt,
+              body: "",
+              coverUrl: "",
+              status: "published",
+              publishedAt: ""
+            }
+          ];
         }
+
+        if (!cancelled) setContent(nextContent);
 
       } catch (error) {
         console.error("Error cargando contenido:", error);
@@ -559,6 +657,18 @@ export default function AdminDashboard() {
           {activeSection === "photos" ? (
 
             <PhotoManager />
+
+          ) : activeSection === "blog" ? (
+
+            <BlogEditor
+              content={content}
+              updateField={updateField}
+              onSave={saveSection}
+              saving={saving}
+              loading={loadingContent}
+              notice={notice}
+              onReset={() => setContent(initialContent.blog)}
+            />
 
           ) : (
 

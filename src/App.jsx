@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation, useParams } from "react-router-dom";
 import AdminDashboard from "./admin/AdminDashboard.jsx";
+import "./blog-editorial.css";
 import { db } from "./firebase/config";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import {
   Instagram,
   Menu,
@@ -188,11 +195,15 @@ function ContactModal({ open, onClose }) {
         </button>
         <div
           className="contact-photo photo-placeholder contact-photo-placeholder"
-          style={contactPhoto ? {
-            backgroundImage: `url("${contactPhoto}")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          } : undefined}
+          style={
+            contactPhoto
+              ? {
+                  backgroundImage: `url("${contactPhoto}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : undefined
+          }
         >
           {!contactPhoto && "LZ / FOTOGRAFÍA"}
         </div>
@@ -217,31 +228,52 @@ function ContactModal({ open, onClose }) {
   );
 }
 
-
 function useSiteImages(category) {
   const [images, setImages] = useState([]);
   useEffect(() => {
-    const imagesQuery = query(collection(db, "siteImages"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(imagesQuery, (snapshot) => {
-      const all = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-      setImages(category ? all.filter((image) => image.category === category) : all);
-    }, (error) => {
-      console.error("Error cargando fotografías:", error);
-      setImages([]);
-    });
+    const imagesQuery = query(
+      collection(db, "siteImages"),
+      orderBy("createdAt", "desc"),
+    );
+    const unsubscribe = onSnapshot(
+      imagesQuery,
+      (snapshot) => {
+        const all = snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }));
+        setImages(
+          category ? all.filter((image) => image.category === category) : all,
+        );
+      },
+      (error) => {
+        console.error("Error cargando fotografías:", error);
+        setImages([]);
+      },
+    );
     return unsubscribe;
   }, [category]);
   return images;
 }
 
-function PhotoGallery({ images, emptyText = "Próximamente nuevas fotografías." }) {
+function PhotoGallery({
+  images,
+  emptyText = "Próximamente nuevas fotografías.",
+}) {
   if (!images.length) return <p className="gallery-empty">{emptyText}</p>;
   return (
     <div className="photo-gallery">
       {images.map((image) => (
         <figure className="gallery-photo" key={image.id}>
-          <img src={image.url} alt={image.name || image.description || "Fotografía de Liz Zapata"} loading="lazy" decoding="async" />
-          {(image.name || image.description) && <figcaption>{image.name || image.description}</figcaption>}
+          <img
+            src={image.url}
+            alt={image.name || image.description || "Fotografía de Liz Zapata"}
+            loading="lazy"
+            decoding="async"
+          />
+          {(image.name || image.description) && (
+            <figcaption>{image.name || image.description}</figcaption>
+          )}
         </figure>
       ))}
     </div>
@@ -256,20 +288,55 @@ function Home() {
   const heroImage = homeImages[0]?.url;
   return (
     <>
-      <section className="hero" style={heroImage ? { backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.68)), url("${heroImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+      <section
+        className="hero"
+        style={
+          heroImage
+            ? {
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.68)), url("${heroImage}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
         <div className="hero-overlay">
           <p className="hero-kicker">FOTOGRAFÍAS QUE CUENTAN HISTORIAS</p>
-          <h1>Liz Zapata<br />Fotógrafa<span className="red-dot">.</span></h1>
+          <h1>
+            Liz Zapata
+            <br />
+            Fotógrafa<span className="red-dot">.</span>
+          </h1>
           <p className="hero-specialties">PRODUCTO / MODA / GASTRONÓMICA</p>
         </div>
         <div className="hero-scroll">DESLIZA PARA EXPLORAR ↓</div>
       </section>
       <section className="home-categories">
-        <div className="ticker"><span>FOTOGRAFÍAS QUE CUENTAN HISTORIAS&nbsp; × &nbsp;FOTOGRAFÍAS QUE CUENTAN HISTORIAS&nbsp; × &nbsp;</span></div>
+        <div className="ticker">
+          <span>
+            FOTOGRAFÍAS QUE CUENTAN HISTORIAS&nbsp; × &nbsp;FOTOGRAFÍAS QUE
+            CUENTAN HISTORIAS&nbsp; × &nbsp;
+          </span>
+        </div>
         <div className="category-home-grid">
-          <CategoryTile title="Producto" imageClass="product-scene" to="/categorias/producto" image={productImages[0]?.url} />
-          <CategoryTile title="Moda" imageClass="fashion-scene" to="/categorias/moda" image={fashionImages[0]?.url} />
-          <CategoryTile title="Gastronómica" imageClass="food-scene" to="/categorias/gastronomica" image={foodImages[0]?.url} />
+          <CategoryTile
+            title="Producto"
+            imageClass="product-scene"
+            to="/categorias/producto"
+            image={productImages[0]?.url}
+          />
+          <CategoryTile
+            title="Moda"
+            imageClass="fashion-scene"
+            to="/categorias/moda"
+            image={fashionImages[0]?.url}
+          />
+          <CategoryTile
+            title="Gastronómica"
+            imageClass="food-scene"
+            to="/categorias/gastronomica"
+            image={foodImages[0]?.url}
+          />
         </div>
       </section>
       <InstagramStrip />
@@ -279,7 +346,19 @@ function Home() {
 
 function CategoryTile({ title, imageClass, to, image }) {
   return (
-    <Link to={to} className={`category-tile ${imageClass}`} style={image ? { backgroundImage: `url("${image}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+    <Link
+      to={to}
+      className={`category-tile ${imageClass}`}
+      style={
+        image
+          ? {
+              backgroundImage: `url("${image}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
+    >
       <span>{title}</span>
     </Link>
   );
@@ -287,7 +366,13 @@ function CategoryTile({ title, imageClass, to, image }) {
 
 function InstagramStrip() {
   const instagramImages = useSiteImages("instagram");
-  const fallbackClasses = ["product-scene", "fashion-scene", "food-scene", "film-scene", "portrait-scene"];
+  const fallbackClasses = [
+    "product-scene",
+    "fashion-scene",
+    "food-scene",
+    "film-scene",
+    "portrait-scene",
+  ];
   return (
     <section className="instagram-strip">
       <div className="instagram-heading">
@@ -308,11 +393,15 @@ function InstagramStrip() {
             <div
               key={photo?.id || className}
               className={`insta-placeholder ${className}`}
-              style={photo?.url ? {
-                backgroundImage: `url("${photo.url}")`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              } : undefined}
+              style={
+                photo?.url
+                  ? {
+                      backgroundImage: `url("${photo.url}")`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
               role={photo?.url ? "img" : undefined}
               aria-label={photo?.title || "Fotografía de Instagram"}
             />
@@ -338,17 +427,44 @@ function About() {
   return (
     <main className="page-content">
       <section className="about-layout">
-        {portrait ? <img className="portrait-placeholder" src={portrait} alt="Liz Zapata, fotógrafa" /> : <div className="portrait-placeholder photo-placeholder">FOTOGRAFÍA DE LIZ</div>}
+        {portrait ? (
+          <img
+            className="portrait-placeholder"
+            src={portrait}
+            alt="Liz Zapata, fotógrafa"
+          />
+        ) : (
+          <div className="portrait-placeholder photo-placeholder">
+            FOTOGRAFÍA DE LIZ
+          </div>
+        )}
         <div className="about-copy">
           <h1 className="script-heading">Hola!</h1>
-          <p>Soy Liz Zapata, fotógrafa apasionada por contar historias a través de la imagen.</p>
-          <p>Me especializo en fotografía de producto, moda y gastronómica, creando imágenes que conectan, comunican y resaltan la esencia de cada marca, proyecto o idea.</p>
-          <p>Disfruto explorar la luz, los colores y los detalles, siempre buscando una mirada creativa y auténtica en cada toma.</p>
-          <button className="script-heading talk-link" onClick={() => window.dispatchEvent(new Event("open-contact"))}>Hablemos</button>
+          <p>
+            Soy Liz Zapata, fotógrafa apasionada por contar historias a través
+            de la imagen.
+          </p>
+          <p>
+            Me especializo en fotografía de producto, moda y gastronómica,
+            creando imágenes que conectan, comunican y resaltan la esencia de
+            cada marca, proyecto o idea.
+          </p>
+          <p>
+            Disfruto explorar la luz, los colores y los detalles, siempre
+            buscando una mirada creativa y auténtica en cada toma.
+          </p>
+          <button
+            className="script-heading talk-link"
+            onClick={() => window.dispatchEvent(new Event("open-contact"))}
+          >
+            Hablemos
+          </button>
         </div>
       </section>
       {images.length > 1 && <PhotoGallery images={images.slice(1)} />}
-      <div className="wide-banner photo-placeholder">FOTOGRAFÍA QUE CUENTA HISTORIAS</div>
+      <div className="wide-banner photo-placeholder">
+        FOTOGRAFÍA QUE CUENTA HISTORIAS
+      </div>
     </main>
   );
 }
@@ -367,13 +483,34 @@ function Categories() {
   return (
     <main className="page-content">
       <InnerIntro title="Categorías">
-        Explora mi trabajo a través de tres enfoques fotográficos: producto, moda y gastronómica. Cada categoría refleja mi forma de contar historias desde la luz, la composición y el detalle.
+        Explora mi trabajo a través de tres enfoques fotográficos: producto,
+        moda y gastronómica. Cada categoría refleja mi forma de contar historias
+        desde la luz, la composición y el detalle.
       </InnerIntro>
       <div className="categories-grid">
-        <CategoryTile title="Producto" imageClass="product-scene" to="/categorias/producto" image={productImages[0]?.url} />
-        <CategoryTile title="Moda" imageClass="fashion-scene" to="/categorias/moda" image={fashionImages[0]?.url} />
-        <CategoryTile title="Gastronómica" imageClass="food-scene" to="/categorias/gastronomica" image={foodImages[0]?.url} />
-        <CategoryTile title="Todas las categorías" imageClass="film-scene" to="/categorias/todas" />
+        <CategoryTile
+          title="Producto"
+          imageClass="product-scene"
+          to="/categorias/producto"
+          image={productImages[0]?.url}
+        />
+        <CategoryTile
+          title="Moda"
+          imageClass="fashion-scene"
+          to="/categorias/moda"
+          image={fashionImages[0]?.url}
+        />
+        <CategoryTile
+          title="Gastronómica"
+          imageClass="food-scene"
+          to="/categorias/gastronomica"
+          image={foodImages[0]?.url}
+        />
+        <CategoryTile
+          title="Todas las categorías"
+          imageClass="film-scene"
+          to="/categorias/todas"
+        />
       </div>
     </main>
   );
@@ -383,11 +520,26 @@ function CategoryDetail() {
   const { pathname } = useLocation();
   const key = pathname.split("/").pop();
   const images = useSiteImages(key === "todas" ? null : key);
-  const title = key === "producto" ? "Producto" : key === "moda" ? "Moda" : key === "gastronomica" ? "Gastronómica" : "Todas las categorías";
-  const visibleImages = key === "todas" ? images.filter((image) => ["producto", "moda", "gastronomica"].includes(image.category)) : images;
+  const title =
+    key === "producto"
+      ? "Producto"
+      : key === "moda"
+        ? "Moda"
+        : key === "gastronomica"
+          ? "Gastronómica"
+          : "Todas las categorías";
+  const visibleImages =
+    key === "todas"
+      ? images.filter((image) =>
+          ["producto", "moda", "gastronomica"].includes(image.category),
+        )
+      : images;
   return (
     <main className="page-content">
-      <InnerIntro title={title}>Una selección de fotografías que exploran la identidad, la luz y los detalles de cada proyecto.</InnerIntro>
+      <InnerIntro title={title}>
+        Una selección de fotografías que exploran la identidad, la luz y los
+        detalles de cada proyecto.
+      </InnerIntro>
       <PhotoGallery images={visibleImages} />
     </main>
   );
@@ -415,31 +567,95 @@ function Personal() {
   const images = useSiteImages("personal");
   return (
     <main className="page-content">
-      <InnerIntro title="Personal">Proyectos fotográficos personales y experimentales donde exploro ideas, conceptos y narrativas visuales más libres.</InnerIntro>
-      <PhotoGallery images={images} emptyText="Aún no hay fotografías en esta sección." />
+      <InnerIntro title="Personal">
+        Proyectos fotográficos personales y experimentales donde exploro ideas,
+        conceptos y narrativas visuales más libres.
+      </InnerIntro>
+      <PhotoGallery
+        images={images}
+        emptyText="Aún no hay fotografías en esta sección."
+      />
     </main>
   );
 }
 
-const articles = [
-  [
-    "La magia del analógico",
-    "Un acercamiento a la fotografía análoga, sus procesos, texturas y la experiencia de fotografiar con tiempo y propósito.",
-    "film-scene",
-  ],
-  [
-    "Fotografía gastronómica",
-    "Claves para crear imágenes gastronómicas apetitosas, auténticas y con identidad.",
-    "food-scene",
-  ],
-];
+function slugify(value) {
+  return (value || "articulo").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function useBlogContent() {
+  const [content, setContent] = useState({ title: "Blog", articles: [] });
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, "siteContent", "blog"), (snapshot) => {
+      if (snapshot.exists()) setContent({ title: "Blog", ...snapshot.data() });
+      setLoaded(true);
+    }, (error) => { console.error("Error cargando Blog:", error); setLoaded(true); });
+    return unsubscribe;
+  }, []);
+  return { content, loaded };
+}
 
 function Blog() {
   const images = useSiteImages("blog");
+  const { content, loaded } = useBlogContent();
+  const articles = Array.isArray(content.articles) ? content.articles : [
+    { id: "legacy-1", slug: "la-magia-del-analogico", title: content.article1Title, excerpt: content.article1Description, coverUrl: images[0]?.url, status: "published" },
+    { id: "legacy-2", slug: "fotografia-gastronomica", title: content.article2Title, excerpt: content.article2Description, coverUrl: images[1]?.url, status: "published" },
+  ];
+  const published = articles.filter((article) => article.status === "published" && article.title);
+
   return (
-    <main className="page-content">
-      <InnerIntro title="Blog">Historias, procesos y referencias de mi trabajo creativo.</InnerIntro>
-      <PhotoGallery images={images} emptyText="Próximamente encontrarás aquí nuevos artículos y fotografías." />
+    <main className="page-content blog-page">
+      <InnerIntro title={content.title || "Blog"}>Historias, procesos y referencias de mi trabajo creativo.</InnerIntro>
+      { !loaded ? <p className="gallery-empty">Cargando publicaciones...</p> : published.length ? (
+        <div className="blog-editorial-grid">
+          {published.map((article, index) => {
+            const cover = article.coverUrl || images[index]?.url;
+            const slug = article.slug || slugify(article.title);
+            return (
+              <article className="blog-editorial-card" key={article.id || slug}>
+                <Link to={`/blog/${slug}`} className="blog-editorial-image" aria-label={`Leer ${article.title}`}>
+                  {cover ? <img src={cover} alt={article.title} loading="lazy"/> : <div className="blog-editorial-no-image">LZ / FOTOGRAFÍA</div>}
+                </Link>
+                <div className="blog-editorial-copy">
+                  <span className="blog-editorial-meta">{article.publishedAt || "PUBLICACIÓN"}</span>
+                  <h2><Link to={`/blog/${slug}`}>{article.title}</Link></h2>
+                  <p>{article.excerpt}</p>
+                  <Link className="blog-read-more" to={`/blog/${slug}`}>LEER ARTÍCULO <ArrowRight size={16}/></Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : <p className="gallery-empty">Próximamente encontrarás nuevas publicaciones.</p> }
+    </main>
+  );
+}
+
+function BlogArticlePage() {
+  const { slug } = useParams();
+  const { content, loaded } = useBlogContent();
+  const images = useSiteImages("blog");
+  const articles = Array.isArray(content.articles) ? content.articles : [
+    { slug: "la-magia-del-analogico", title: content.article1Title, excerpt: content.article1Description, body: "", coverUrl: images[0]?.url, status: "published" },
+    { slug: "fotografia-gastronomica", title: content.article2Title, excerpt: content.article2Description, body: "", coverUrl: images[1]?.url, status: "published" },
+  ];
+  const article = articles.find((item) => (item.slug || slugify(item.title)) === slug && item.status === "published");
+  if (!loaded) return <main className="page-content"><p>Cargando artículo...</p></main>;
+  if (!article) return <main className="page-content"><h1>Artículo no encontrado</h1><Link to="/blog">Volver al Blog</Link></main>;
+  const cover = article.coverUrl || images[0]?.url;
+  return (
+    <main className="page-content blog-article-page">
+      <Link className="blog-back-link" to="/blog">← VOLVER AL BLOG</Link>
+      {cover && <img className="blog-article-cover" src={cover} alt={article.title}/>}
+      <article className="blog-article-content">
+        <span className="blog-editorial-meta">{article.publishedAt || "LIZ ZAPATA · FOTÓGRAFA"}</span>
+        <h1>{article.title}</h1>
+        {article.excerpt && <p className="blog-article-excerpt">{article.excerpt}</p>}
+        <div className="blog-article-body">{(article.body || "").split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+        <Link className="blog-back-link" to="/blog">← VER MÁS ARTÍCULOS</Link>
+      </article>
     </main>
   );
 }
@@ -552,7 +768,15 @@ function ContactPage() {
           className="contact-page-photo"
           role="img"
           aria-label="Fotografía de cámara y rollo fotográfico"
-          style={contactPhoto ? { backgroundImage: `url("${contactPhoto}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+          style={
+            contactPhoto
+              ? {
+                  backgroundImage: `url("${contactPhoto}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : undefined
+          }
         />
         <div className="contact-page-content">
           <div className="contact-page-intro">
@@ -683,6 +907,7 @@ export default function App() {
         <Route path="/categorias/:category" element={<CategoryDetail />} />
         <Route path="/personal" element={<Personal />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogArticlePage />} />
         <Route path="/contacto" element={<ContactPage />} />
         <Route path="/admin" element={<AdminDashboard />} />{" "}
         <Route

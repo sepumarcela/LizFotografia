@@ -247,3 +247,179 @@ button { cursor: pointer; }
   .contact-details { border-right: 0; border-bottom: 2px solid #242424; padding: 0 0 25px; }
   .contact-page-intro h1 { font-size: clamp(38px, 11vw, 55px); }
 }
+
+
+/* ======================================================
+   SISTEMA DE TAMAÑOS FOTOGRÁFICOS - TODAS LAS SECCIONES
+   Las imágenes conservan su proporción y no desbordan.
+====================================================== */
+
+/* Evita que columnas y fotografías ensanchen la página */
+.page-content, .about-layout, .categories-grid, .photo-gallery,
+.personal-list, .contact-page-card, .contact-page-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Inicio: portada a pantalla completa y tarjetas de categorías compactas */
+.category-home-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+.category-home-grid .category-tile {
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+}
+
+/* Sobre mí: retrato vertical contenido, sin crecer con la resolución original */
+.about-layout {
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 68px);
+  max-width: 1180px;
+}
+.about-layout .portrait-placeholder {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+  background: #e5e5e5;
+}
+
+/* Tarjetas de categorías: tamaño limitado en escritorio */
+.categories-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+.categories-grid .category-tile {
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  max-height: 590px;
+}
+
+/* Galerías de Producto, Moda, Gastronómica, Personal, Blog y Sobre mí */
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.5vw, 18px);
+  align-items: start;
+  width: 100%;
+}
+.gallery-photo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: auto;
+  margin: 0;
+  overflow: hidden;
+  background: #e5e5e5;
+}
+.gallery-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+  object-fit: contain;
+  object-position: center;
+  background: #e5e5e5;
+}
+.gallery-photo figcaption {
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.gallery-empty {
+  padding: 24px 0;
+  color: #555;
+}
+
+/* Personal ya usa la galería común; reglas de respaldo para proyectos heredados */
+.personal-image {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+  overflow: hidden;
+}
+
+/* Blog usa la misma proporción de imagen que el portafolio */
+.blog-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.blog-image {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+  overflow: hidden;
+}
+
+/* Servicios y contacto: fotografía limitada y alineada con el contenido */
+.contact-page-card {
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  align-items: start;
+}
+.contact-page-photo {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  max-height: 520px;
+  background-size: cover;
+  background-position: center;
+}
+.contact-columns {
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+}
+
+/* Modal de contacto */
+.contact-photo {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+  max-height: 520px;
+}
+
+/* Adaptación tablet */
+@media (max-width: 1050px) {
+  .photo-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about-layout { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
+  .contact-page-card { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); }
+  .contact-columns { grid-template-columns: 1fr; }
+  .contact-details { border-right: 0; border-bottom: 2px solid #242424; padding: 0 0 22px; }
+}
+
+/* Adaptación móvil */
+@media (max-width: 760px) {
+  .category-home-grid { grid-template-columns: minmax(0, 1fr); }
+  .category-home-grid .category-tile { max-width: 480px; margin-inline: auto; }
+  .about-layout { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .about-layout .portrait-placeholder { max-width: 390px; margin-inline: auto; }
+  .categories-grid { grid-template-columns: minmax(0, 1fr); }
+  .categories-grid .category-tile { max-width: 480px; margin-inline: auto; }
+  .photo-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .gallery-photo img { max-height: 440px; }
+  .blog-grid { grid-template-columns: minmax(0, 1fr); }
+  .contact-page-card { grid-template-columns: minmax(0, 1fr); }
+  .contact-page-photo { max-width: 390px; max-height: 490px; margin-inline: auto; }
+  .contact-columns { grid-template-columns: minmax(0, 1fr); }
+  .contact-details { border-right: 0; border-bottom: 2px solid #242424; padding: 0 0 22px; }
+  .contact-photo { max-height: 420px; }
+}
+
+@media (max-width: 390px) {
+  .photo-gallery { grid-template-columns: minmax(0, 1fr); }
+  .gallery-photo img { max-height: 520px; }
+}

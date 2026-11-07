@@ -231,7 +231,7 @@ function PhotoGallery({ images, emptyText = "Próximamente nuevas fotografías."
     <div className="photo-gallery">
       {images.map((image) => (
         <figure className="gallery-photo" key={image.id}>
-          <img src={image.url} alt={image.name || image.description || "Fotografía de Liz Zapata"} loading="lazy" />
+          <img src={image.url} alt={image.name || image.description || "Fotografía de Liz Zapata"} loading="lazy" decoding="async" />
           {(image.name || image.description) && <figcaption>{image.name || image.description}</figcaption>}
         </figure>
       ))}
@@ -249,14 +249,14 @@ function Home() {
     <>
       <section className="hero" style={heroImage ? { backgroundImage: `url("${heroImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
         <div className="hero-overlay">
-          <p className="hero-kicker">FOTOGRAFÍA QUE CUENTA HISTORIAS</p>
+          <p className="hero-kicker">FOTOGRAFÍAS QUE CUENTAN HISTORIAS</p>
           <h1>Liz Zapata<br />Fotógrafa<span className="red-dot">.</span></h1>
           <p className="hero-specialties">PRODUCTO / MODA / GASTRONÓMICA</p>
         </div>
         <div className="hero-scroll">DESLIZA PARA EXPLORAR ↓</div>
       </section>
       <section className="home-categories">
-        <div className="ticker"><span>FOTOGRAFÍA QUE CUENTA HISTORIAS&nbsp; × &nbsp;FOTOGRAFÍA QUE CUENTA HISTORIAS&nbsp; × &nbsp;</span></div>
+        <div className="ticker"><span>FOTOGRAFÍAS QUE CUENTAN HISTORIAS&nbsp; × &nbsp;FOTOGRAFÍAS QUE CUENTAN HISTORIAS&nbsp; × &nbsp;</span></div>
         <div className="category-home-grid">
           <CategoryTile title="Producto" imageClass="product-scene" to="/categorias/producto" image={productImages[0]?.url} />
           <CategoryTile title="Moda" imageClass="fashion-scene" to="/categorias/moda" image={fashionImages[0]?.url} />
@@ -500,6 +500,8 @@ function Admin() {
 }
 
 function ContactPage() {
+  const contactImages = useSiteImages("contact");
+  const contactPhoto = contactImages[0]?.url;
   const [form, setForm] = useState({
     nombre: "",
     correo: "",

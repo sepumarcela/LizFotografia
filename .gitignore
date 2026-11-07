@@ -7,3 +7,8 @@ dist/
 .vercel/
 .DS_Store
 Thumbs.db
+# Credenciales privadas de Firebase
+*serviceAccount*.json
+firebase-adminsdk*.json
+.vercel
+.env*

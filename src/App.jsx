@@ -163,6 +163,8 @@ function Footer() {
 }
 
 function ContactModal({ open, onClose }) {
+  const contactImages = useSiteImages("contact");
+  const contactPhoto = contactImages[0]?.url;
   useEffect(() => {
     const handler = () =>
       window.dispatchEvent(new Event("contact-open-request"));
@@ -184,8 +186,15 @@ function ContactModal({ open, onClose }) {
         <button className="modal-close" onClick={onClose} aria-label="Cerrar">
           <X />
         </button>
-        <div className="contact-photo photo-placeholder contact-photo-placeholder">
-          LZ / FOTOGRAFÍA
+        <div
+          className="contact-photo photo-placeholder contact-photo-placeholder"
+          style={contactPhoto ? {
+            backgroundImage: `url("${contactPhoto}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          } : undefined}
+        >
+          {!contactPhoto && "LZ / FOTOGRAFÍA"}
         </div>
         <div className="contact-modal-content">
           <p className="eyebrow">HABLEMOS DE TU PROYECTO</p>
@@ -277,6 +286,8 @@ function CategoryTile({ title, imageClass, to, image }) {
 }
 
 function InstagramStrip() {
+  const instagramImages = useSiteImages("instagram");
+  const fallbackClasses = ["product-scene", "fashion-scene", "food-scene", "film-scene", "portrait-scene"];
   return (
     <section className="instagram-strip">
       <div className="instagram-heading">
@@ -291,15 +302,22 @@ function InstagramStrip() {
         </a>
       </div>
       <div className="instagram-placeholder-grid">
-        {[
-          "product-scene",
-          "fashion-scene",
-          "food-scene",
-          "film-scene",
-          "portrait-scene",
-        ].map((c, i) => (
-          <div key={i} className={`insta-placeholder ${c}`} />
-        ))}
+        {fallbackClasses.map((className, index) => {
+          const photo = instagramImages[index];
+          return (
+            <div
+              key={photo?.id || className}
+              className={`insta-placeholder ${className}`}
+              style={photo?.url ? {
+                backgroundImage: `url("${photo.url}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              } : undefined}
+              role={photo?.url ? "img" : undefined}
+              aria-label={photo?.title || "Fotografía de Instagram"}
+            />
+          );
+        })}
       </div>
     </section>
   );

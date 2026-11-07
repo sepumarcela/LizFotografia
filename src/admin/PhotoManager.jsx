@@ -26,7 +26,7 @@ const categories = [
   ["sobre-mi", "Sobre mí"],
   ["producto", "Categoría — Producto"],
   ["moda", "Categoría — Moda"],
-  ["gastronomica", "Categoría — Gastronómica"],
+  ["gastronomica", "Categoría — Gastronomía"],
   ["personal", "Personal"],
   ["blog", "Blog"],
   ["contact", "Servicios y contacto"],

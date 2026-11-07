@@ -256,7 +256,7 @@ function Home() {
   const heroImage = homeImages[0]?.url;
   return (
     <>
-      <section className="hero" style={heroImage ? { backgroundImage: `url("${heroImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+      <section className="hero" style={heroImage ? { backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.68)), url("${heroImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
         <div className="hero-overlay">
           <p className="hero-kicker">FOTOGRAFÍAS QUE CUENTAN HISTORIAS</p>
           <h1>Liz Zapata<br />Fotógrafa<span className="red-dot">.</span></h1>

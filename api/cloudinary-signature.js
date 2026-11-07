@@ -1,4 +1,3 @@
-
 import { createHash } from "node:crypto";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -11,7 +10,7 @@ const allowedFolders = [
   "liz-zapata/categories/gastronomica",
   "liz-zapata/personal",
   "liz-zapata/blog",
-  "liz-zapata/contact"
+  "liz-zapata/contact",
 ];
 
 function getFirebaseAdmin() {
@@ -19,14 +18,17 @@ function getFirebaseAdmin() {
 
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(
+    /\\n/g,
+    "\n",
+  ).trim();
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error("Faltan credenciales de Firebase Admin.");
   }
 
   return initializeApp({
-    credential: cert({ projectId, clientEmail, privateKey })
+    credential: cert({ projectId, clientEmail, privateKey }),
   });
 }
 
@@ -49,13 +51,17 @@ export default async function handler(req, res) {
     const decodedToken = await getAuth(app).verifyIdToken(token);
 
     if (decodedToken.uid !== process.env.FIREBASE_ADMIN_UID) {
-      return res.status(403).json({ error: "No tienes permiso para cargar imágenes." });
+      return res
+        .status(403)
+        .json({ error: "No tienes permiso para cargar imágenes." });
     }
 
     const { folder } = req.body || {};
 
     if (!allowedFolders.includes(folder)) {
-      return res.status(400).json({ error: "Carpeta de destino no permitida." });
+      return res
+        .status(400)
+        .json({ error: "Carpeta de destino no permitida." });
     }
 
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -78,12 +84,12 @@ export default async function handler(req, res) {
       apiKey,
       timestamp,
       folder,
-      signature
+      signature,
     });
   } catch (error) {
     console.error("Error generando firma de Cloudinary:", error);
     return res.status(401).json({
-      error: "No fue posible autorizar la carga de imágenes."
+      error: "No fue posible autorizar la carga de imágenes.",
     });
   }
 }

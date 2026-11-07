@@ -8,7 +8,8 @@ import {
   BriefcaseBusiness,
   ArrowRight,
 } from "lucide-react";
-import { supabase } from "./lib/supabase";
+import { auth } from "./firebase/config";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const navItems = [
   ["Inicio", "/"],
@@ -477,23 +478,27 @@ function Admin() {
 
   async function signIn(e) {
     e.preventDefault();
-    if (!supabase) {
-      setMessage(
-        "Primero configura las variables de Supabase en el archivo .env.local.",
-      );
-      return;
-    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    setMessage(
-      error
-        ? "No fue posible iniciar sesión. Verifica tus datos."
-        : "Sesión iniciada. El siguiente paso será construir el panel de administración.",
-    );
+    setMessage("");
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      setMessage(
+        "Sesión iniciada correctamente. El siguiente paso será construir el panel de administración.",
+      );
+    } catch (error) {
+      console.error("Error al iniciar sesión con Firebase:", error);
+
+      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+        setMessage("Correo o contraseña incorrectos.");
+      } else if (error.code === "auth/too-many-requests") {
+        setMessage("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
+      } else {
+        setMessage("No fue posible iniciar sesión. Verifica la conexión y la configuración de Firebase.");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

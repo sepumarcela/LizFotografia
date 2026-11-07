@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import AdminDashboard from "./admin/AdminDashboard.jsx";
 import {
   Instagram,
   Menu,
@@ -8,8 +9,6 @@ import {
   BriefcaseBusiness,
   ArrowRight,
 } from "lucide-react";
-import { auth } from "./firebase/config";
-import { signInWithEmailAndPassword } from "firebase/auth";
 
 const navItems = [
   ["Inicio", "/"],
@@ -489,12 +488,20 @@ function Admin() {
     } catch (error) {
       console.error("Error al iniciar sesión con Firebase:", error);
 
-      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
         setMessage("Correo o contraseña incorrectos.");
       } else if (error.code === "auth/too-many-requests") {
-        setMessage("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
+        setMessage(
+          "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+        );
       } else {
-        setMessage("No fue posible iniciar sesión. Verifica la conexión y la configuración de Firebase.");
+        setMessage(
+          "No fue posible iniciar sesión. Verifica la conexión y la configuración de Firebase.",
+        );
       }
     } finally {
       setLoading(false);
@@ -699,7 +706,7 @@ export default function App() {
         <Route path="/personal" element={<Personal />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contacto" element={<ContactPage />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminDashboard />} />{" "}
         <Route
           path="*"
           element={
